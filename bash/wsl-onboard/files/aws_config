@@ -1,0 +1,95 @@
+[sso-session welltower]
+sso_start_url = https://welltower-admin.awsapps.com/start#/
+sso_region = us-east-1
+sso_registration_scopes = sso:account:access
+
+[profile default]
+sso_session = welltower
+sso_account_id = 583678989391
+sso_role_name = AdministratorAccess
+region = us-east-1
+output = json
+
+[profile welltower-production]
+sso_session = welltower
+sso_account_id = 013501887498
+sso_role_name = AdministratorAccess
+region = us-east-1
+output = json
+
+[profile welltower-vmc]
+sso_session = welltower
+sso_account_id = 257477991655
+sso_role_name = AdministratorAccess
+region = us-east-1
+output = json
+
+[profile welltower-platform-uat]
+sso_session = welltower
+sso_account_id = 358646388167
+sso_role_name = AdministratorAccess
+region = us-east-1
+output = json
+
+[profile welltower-log-archive]
+sso_session = welltower
+sso_account_id = 133569093331
+sso_role_name = AdministratorAccess
+region = us-east-1
+output = json
+
+[profile Welltower]
+sso_session = welltower
+sso_account_id = 583678989391
+sso_role_name = AdministratorAccess
+region = us-east-1
+output = json
+
+[profile welltower-network]
+sso_session = welltower
+sso_account_id = 353102158288
+sso_role_name = AdministratorAccess
+region = us-east-1
+output = json
+
+[profile welltower-marketplace]
+sso_session = welltower
+sso_account_id = 961138291944
+sso_role_name = AdministratorAccess
+region = us-east-1
+output = json
+
+[profile welltower-security]
+sso_session = welltower
+sso_account_id = 148226610104
+sso_role_name = AdministratorAccess
+region = us-east-1
+output = json
+
+[profile welltower-platform-dev]
+sso_session = welltower
+sso_account_id = 725675846413
+sso_role_name = AdministratorAccess
+region = us-east-1
+output = json
+
+[profile welltower-platform-operations]
+sso_session = welltower
+sso_account_id = 005851909592
+sso_role_name = AdministratorAccess
+region = us-east-1
+output = json
+
+[profile welltower-platform-prod]
+sso_session = welltower
+sso_account_id = 602837221957
+sso_role_name = AdministratorAccess
+region = us-east-1
+output = json
+
+[profile welltower-dr]
+sso_session = welltower
+sso_account_id = 365221082111
+sso_role_name = AdministratorAccess
+region = us-east-1
+output = json

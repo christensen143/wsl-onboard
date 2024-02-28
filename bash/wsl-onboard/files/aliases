@@ -1,0 +1,8 @@
+alias tf=terraform
+alias k=kubectl
+alias eks-prod="export AWS_PROFILE=welltower-platform-prod && kubectx wl-eks-prod"
+alias eks-uat="export AWS_PROFILE=welltower-platform-uat && kubectx wl-eks-uat"
+alias eks-dev="export AWS_PROFILE=welltower-platform-dev && kubectx wl-eks-dev"
+alias kns=kubens
+alias kctx=kubectx
+alias sso-login="aws sso login"
