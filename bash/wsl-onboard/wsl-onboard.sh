@@ -29,7 +29,7 @@ fi
 
 if [ -z "$(git config --global --get user.email)" ]; then
   echo "No user.email found in git global config"
-  echo "Please type your Welltower email address. Ex. jsmith@welltower.com"
+  echo "Please type your email address. Ex. jsmith@example.com"
   read -r email
   git config --global user.email "$email"
   echo -e "'$email' added to git global config\n"
@@ -244,85 +244,6 @@ if ! command -v kubectl &> /dev/null; then
   sleep 2
 else
   echo -e "kubectl is already installed!\nPlease use 'kubectl -h' for usage.\nNote: You can also use the alias 'k'. Ex: 'k -help'\n"
-  sleep 2
-fi
-
-# Create code that allows the user to choose between zsh and bash
-echo "Do you access to the Welltower Kubernetes clusters? (y/N)"
-
-read answer
-
-echo ${answer}
-
-# Create kubeconfig from clusters
-if [ ${answer} != "y" ]; then
-  echo -e "You will need to setup access to the Welltower Kubernetes clusters when you have access.\n"
-  echo -e "To setup access run the command 'aws eks update-kubeconfig --region us-east-1 --name <name of cluster>'"
-  sleep 2
-elif [ ! -e /home/${USER}/.kube/config ]; then
-  echo -e "Setting up kubeconfig for Kubernetes."
-  sleep 1
-  echo -e "A browser window will open and you will need to authenticate to AWS to complete this step.\n"
-  sleep 2
-# aws sso login --profile welltower-platform-prod
-  aws sso login 2>/dev/null >/dev/null
-  export AWS_PROFILE=welltower-platform-prod
-  aws eks update-kubeconfig --region us-east-1 --name wl-eks-prod
-  export AWS_PROFILE=welltower-platform-uat
-  aws eks update-kubeconfig --region us-east-1 --name wl-eks-uat
-  export AWS_PROFILE=welltower-platform-dev
-  aws eks update-kubeconfig --region us-east-1 --name wl-eks-dev
-  echo -e "\nAll kubectl contexts have been added.\nTo view contexts use kubectl config --get-contexts.\n"
-  sleep 2
-elif [ `kubectl config get-contexts | wc -l` -ne "4" ]; then
-  aws sso login --profile welltower-platform-prod 2>/dev/null >/dev/null
-  if [ ! "`kubectl config get-contexts | grep "arn:aws:eks:us-east-1:725675846413:cluster/wl-eks-dev"`" ]; then
-    export AWS_PROFILE=welltower-platform-dev
-    aws eks update-kubeconfig --region us-east-1 --name wl-eks-dev
-  fi
-  if [ ! "`kubectl config get-contexts | grep "arn:aws:eks:us-east-1:358646388167:cluster/wl-eks-uat"`" ]; then
-    export AWS_PROFILE=welltower-platform-uat
-    aws eks update-kubeconfig --region us-east-1 --name wl-eks-uat
-  fi
-  if [ ! "`kubectl config get-contexts | grep "arn:aws:eks:us-east-1:602837221957:cluster/wl-eks-prod"`" ]; then
-    export AWS_PROFILE=welltower-platform-prod
-    aws eks update-kubeconfig --region us-east-1 --name wl-eks-prod 
-  fi
-  echo -e "\nAll kubectl contexts have been added.\nTo view contexts use kubectl config --get-contexts.\n"
-  sleep 2
-else
-  echo -e "kubeconfig file already exists and has all contexts.\nTo view contexts use kubectl config --get-contexts.\n"
-  sleep 2
-fi
-
-# Rename contexts in kubeconfig
-dev_context_name=$(kubectl config view -o jsonpath='{.contexts[?(@.context.cluster == "arn:aws:eks:us-east-1:725675846413:cluster/wl-eks-dev")].name}')
-uat_context_name=$(kubectl config view -o jsonpath='{.contexts[?(@.context.cluster == "arn:aws:eks:us-east-1:358646388167:cluster/wl-eks-uat")].name}')
-prod_context_name=$(kubectl config view -o jsonpath='{.contexts[?(@.context.cluster == "arn:aws:eks:us-east-1:602837221957:cluster/wl-eks-prod")].name}')
-if [ "${dev_context_name}" != "wl-eks-dev" ] || [ "${uat_context_name}" != "wl-eks-uat" ] || [ "${prod_context_name}" != "wl-eks-prod" ]; then
-  echo -e "Renaming kubectl contexts."
-  if [ "${dev_context_name}" != "wl-eks-dev" ]; then
-    echo -e "Renaming dev kubectl context."
-    kubectl config rename-context "${dev_context_name}" wl-eks-dev
-    echo ""
-    sleep 2
-  fi
-  if [ "${uat_context_name}" != "wl-eks-uat" ]; then
-    echo -e "Renaming uat kubectl context."
-    kubectl config rename-context "${uat_context_name}" wl-eks-uat
-    echo ""
-    sleep 2
-  fi
-  if [ "${prod_context_name}" != "wl-eks-prod" ]; then
-    echo -e "Renaming prod kubectl context."
-    kubectl config rename-context "${prod_context_name}" wl-eks-prod
-    echo ""
-    sleep 2
-  fi
-  echo -e "kubectl contexts have been renamed.\n"
-  sleep 2
-else
-  echo -e "kubectl contexts are already renamed.\nTo view available contexts run 'kubectl get-contexts'\n"
   sleep 2
 fi
 
