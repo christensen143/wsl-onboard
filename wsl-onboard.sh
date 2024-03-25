@@ -1,13 +1,5 @@
 #!/bin/bash
 
-# Setup resolv.conf
-echo "Setting up DNS. You may be prompted for your password."
-sudo cp files/resolv.conf /etc/resolv.conf
-
-# Setup wsl.conf
-echo "Setting up wsl.conf file."
-sudo cp files/wsl.conf /etc/wsl.conf
-
 # Create aliases
 if [ -f /home/${USER}/.bash_aliases ]; then
   rm -r /home/${USER}/.bash_aliases
@@ -69,7 +61,7 @@ case $choice in
     # Change default shell to zsh
     sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended 2>/dev/null >/dev/null
     chsh -s $(which zsh)
-    echo -e "\nsourczsh is now your default shell.\n"
+    echo -e "zsh is now your default shell.\n"
     echo "source /home/${USER}/.bash_aliases" | sudo tee -a /home/${USER}/.zshrc 2>/dev/null >/dev/null
     ;;
 2)
@@ -181,11 +173,6 @@ if ! command -v aws &> /dev/null; then
   curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
   unzip -qq awscliv2.zip
   sudo ./aws/install 2>/dev/null >/dev/null
-  rm -rf aws*
-  mkdir /home/${USER}/.aws
-  chmod 755 /home/${USER}/.aws
-  cp ./files/aws_config /home/${USER}/.aws/config
-  chmod 600 /home/${USER}/.aws/config
   echo -e "aws cli has been successfully installed.\nPlease use 'aws -h' for usage.\n"
   sleep 2
 else
