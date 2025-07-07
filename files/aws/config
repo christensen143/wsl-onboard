@@ -1,0 +1,15 @@
+[default]
+region = us-west-2
+
+### Example profiles - customize these based on your organization ###
+# [profile dev]
+# aws_account_id = YOUR_DEV_ACCOUNT_ID
+# role_arn = arn:aws:iam::YOUR_DEV_ACCOUNT_ID:role/YOUR_ROLE_NAME
+# source_profile = default
+# region = us-west-2
+
+# [profile prod]
+# aws_account_id = YOUR_PROD_ACCOUNT_ID
+# role_arn = arn:aws:iam::YOUR_PROD_ACCOUNT_ID:role/YOUR_ROLE_NAME
+# source_profile = default
+# region = us-west-2

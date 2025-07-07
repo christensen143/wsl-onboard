@@ -1,10 +1,28 @@
 #!/bin/bash
+set -euo pipefail
+
+# Script variables
+HOME_DIR="/home/${USER}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Function to print messages
+print_msg() {
+  echo -e "$1"
+  [ "${2:-}" = "sleep" ] && sleep 2
+}
+
+# Function to check if command exists
+command_exists() {
+  command -v "$1" &> /dev/null
+}
+
+# Function to run apt commands quietly
+apt_quiet() {
+  sudo apt -qq "$@" 2>/dev/null >/dev/null
+}
 
 # Create aliases
-if [ -f /home/${USER}/.bash_aliases ]; then
-  rm -r /home/${USER}/.bash_aliases
-fi
-cp ./files/aliases /home/${USER}/.bash_aliases
+cp -f "${SCRIPT_DIR}/files/aliases" "${HOME_DIR}/.bash_aliases"
 
 # Set up git global config
 if [ -z "$(git config --global --get user.name)" ]; then
@@ -12,11 +30,9 @@ if [ -z "$(git config --global --get user.name)" ]; then
   echo "Please type your first and last name. Ex. John Smith"
   read -r username
   git config --global user.name "$username"
-  echo -e "'$username' added to git global config\n"
-  sleep 2
+  print_msg "'$username' added to git global config\n" sleep
 else
-  echo -e "user.name exists in git global config\n"
-  sleep 2
+  print_msg "user.name exists in git global config\n" sleep
 fi
 
 if [ -z "$(git config --global --get user.email)" ]; then
@@ -24,24 +40,19 @@ if [ -z "$(git config --global --get user.email)" ]; then
   echo "Please type your email address. Ex. jsmith@example.com"
   read -r email
   git config --global user.email "$email"
-  echo -e "'$email' added to git global config\n"
-  sleep 2
+  print_msg "'$email' added to git global config\n" sleep
 else
-  echo -e "user.email exists in git global config\n"
-  sleep 2
+  print_msg "user.email exists in git global config\n" sleep
 fi
 
 # Update apt
-echo "Running initial updates..."
-sleep 1
-echo "You may be prompted for your password..."
-sleep 1
-echo "This might take a minute..."
-sudo apt -qq update 2>/dev/null >/dev/null 
-sudo apt -qq upgrade -y 2>/dev/null >/dev/null
-sudo apt -qq install pkg-config unzip wslu build-essential gcc jq zsh -y 2>/dev/null >/dev/null
-echo "Initial updates complete."
-sleep 2
+print_msg "Running initial updates..."
+print_msg "You may be prompted for your password..."
+print_msg "This might take a minute..."
+apt_quiet update
+apt_quiet upgrade -y
+apt_quiet install pkg-config unzip wslu build-essential gcc jq zsh -y
+print_msg "Initial updates complete." sleep
 
 # Create code that allows the user to choose between zsh and bash
 echo "Choose your preferred shell:"
@@ -61,11 +72,11 @@ case $choice in
     # Change default shell to zsh
     sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended 2>/dev/null >/dev/null
     chsh -s $(which zsh)
-    echo -e "zsh is now your default shell.\n"
-    echo "source /home/${USER}/.bash_aliases" | sudo tee -a /home/${USER}/.zshrc 2>/dev/null >/dev/null
+    print_msg "zsh is now your default shell.\n"
+    echo "source ${HOME_DIR}/.bash_aliases" | sudo tee -a "${HOME_DIR}/.zshrc" 2>/dev/null >/dev/null
     ;;
 2)
-    echo -e "bash is now your default shell.\n"
+    print_msg "bash is now your default shell.\n"
     ;;
 *)
     echo "Invalid choice. Please enter 1 or 2."
@@ -73,19 +84,17 @@ case $choice in
 esac
 
 # Install Linux Brew
-if ! command -v brew &> /dev/null; then
-  echo -e "Installing Linux brew..."
+if ! command_exists brew; then
+  print_msg "Installing Linux brew..."
   yes | /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" 2>/dev/null >/dev/null
-  (echo; echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"') >> /home/${USER}/.${default_shell}rc
+  (echo; echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"') >> "${HOME_DIR}/.${default_shell}rc"
       eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
   brew update 2>/dev/null >/dev/null
-  echo -e "Linux brew has been installed.\nPlease use 'brew -h' for usage.\n"
-  sleep 2
+  print_msg "Linux brew has been installed.\nPlease use 'brew -h' for usage.\n" sleep
 else
   brew update 2>/dev/null >/dev/null
   brew upgrade 2>/dev/null >/dev/null
-  echo -e "Linux brew is already installed.\nPlease use 'brew -h' for usage.\n"
-  sleep 2
+  print_msg "Linux brew is already installed.\nPlease use 'brew -h' for usage.\n" sleep
 fi
 
 # Install Terraform
@@ -173,10 +182,25 @@ if ! command -v aws &> /dev/null; then
   curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
   unzip -qq awscliv2.zip
   sudo ./aws/install 2>/dev/null >/dev/null
+  rm -rf awscliv2.zip aws/
   echo -e "aws cli has been successfully installed.\nPlease use 'aws -h' for usage.\n"
   sleep 2
 else
   echo -e "aws cli is already installed!\nPlease use 'aws -h' for usage.\n"
+  sleep 2
+fi
+
+# Configure AWS CLI
+if [ ! -d /home/${USER}/.aws ]; then
+  mkdir -p /home/${USER}/.aws
+fi
+
+if [ -f ./files/aws/config ] && [ ! -f /home/${USER}/.aws/config ]; then
+  cp ./files/aws/config /home/${USER}/.aws/config
+  echo -e "AWS config file has been set up.\nYou can customize it at ~/.aws/config\n"
+  sleep 2
+elif [ -f /home/${USER}/.aws/config ]; then
+  echo -e "AWS config already exists at ~/.aws/config\n"
   sleep 2
 fi
 
@@ -207,8 +231,8 @@ if ! command -v kubectl &> /dev/null; then
   sudo apt -qq update 2>/dev/null >/dev/null
   # apt-transport-https may be a dummy package; if so, you can skip that package
   sudo apt -qq install -y apt-transport-https ca-certificates curl 2>/dev/null >/dev/null
-  curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.28/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
-  echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.28/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list 2>/dev/null >/dev/null
+  curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.31/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+  echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.31/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list 2>/dev/null >/dev/null
   sudo apt -qq update 2>/dev/null >/dev/null
   sudo apt -qq install -y kubectl 2>/dev/null >/dev/null
   if [[ "${default_shell}" == "zsh" ]]; then
